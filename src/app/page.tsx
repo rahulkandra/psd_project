@@ -1,82 +1,92 @@
-import Link from "next/link";
-import { sql } from "@vercel/postgres";
+"use client";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+interface Row {
+  team: string;
+  wins: number;
+  draws: number;
+  loses: number;
+  goalsdifference: number;
+  points: number;
+  year: number;
+}
 
-<<<<<<< HEAD
 export default function Page() {
+  const [pointsData, setPointsData] = useState<Row[]>([]);
+  const [filteredPointsData, setFilteredPointsData] = useState<Row[]>([]);
+
+  const fetchPointsData = async () => {
+    try {
+      const response = await fetch("/api/points");
+      const data = await response.json();
+      setPointsData(data.result.rows);
+    } catch (error) {
+      console.error("Error fetching points data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPointsData();
+  }, []);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const year = parseInt(event.target.value);
+
+    const filteredData = pointsData.filter((row) => row.year === year);
+    setFilteredPointsData(filteredData);
+  };
+
   return (
-    <>
-      <div>
-        <h1>Hello</h1>
-        <Link href="/dashboard">Dashboard</Link>
-      </div>
-      <div id="mail">
-        <h1>Contact Organiser:</h1>
-        <h2>Email: maltucker@gmail.com</h2>
-      </div>
-    </>
-  );
-=======
-export default async function Page() {
-  try {
-    const { rows } = await sql`SELECT * FROM Elevate;`;
-    const sortedRows = [...rows].sort((a, b) => b.points - a.points);
-
-    return (
-      <div>
-        <h1>Flagrant Fowl Futbol Association</h1>
-        <Link href="/dashboard">Go to Dashboard</Link>
-        {" "}
-        <Link href="/learnmore">Learn More</Link>
-        <h2>2023 Final Standings</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Team</th>
-              <th></th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GD</th>
-              <th>Pts</th>
+    <div>
+      <h1>Flagrant Fowl Futbol Association</h1>
+      <Link href="/dashboard">Go to Dashboard</Link> <br />
+      <Link href="/learnmore">Learn More</Link>
+      <h2>Final Standings</h2>
+      <h3>Points Table</h3>
+      <select onChange={handleChange}>
+        <option value="">Select Year</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+      </select>
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th></th>
+            <th>Wins</th>
+            <th>Draws</th>
+            <th>Loses</th>
+            <th>Goals Difference</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredPointsData.map((row, index) => (
+            <tr key={index}>
+              <td>{row.team}</td>
+              <td>
+                <Image
+                  src={`/logos/${row.team}.jpeg`}
+                  alt={`Logo of ${row.team}`}
+                  width={50}
+                  height={50}
+                />
+              </td>
+              <td>{row.wins}</td>
+              <td>{row.draws}</td>
+              <td>{row.loses}</td>
+              <td>{row.goalsdifference}</td>
+              <td>{row.points}</td>
             </tr>
-          </thead>
-          <tbody>
-            {sortedRows.map((row, index) => (
-              <tr key={index}>
-                <td>{row.team}</td>
-                <td>
-                  <Image
-                    src={`/logos/${row.team}.jpeg`}
-                    alt={`Logo of ${row.team}`}
-                    width={50}
-                    height={50}
-                  />
-                </td>
-                <td>{row.wins}</td>
-                <td>{row.draws}</td>
-                <td>{row.lost}</td>
-                <td>{row.gd}</td>
-                <td>{row.points}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  } catch (error) {
-    console.error("Error fetching data from the database:", error);
-
-    return (
-      <div>
-        <h1>Hello</h1>
-        <Link href="/dashboard">Go to Dashboard</Link>
-        <p>
-          Error fetching data from the database. Please check the console for
-          more details.
-        </p>
-      </div>
-    );
-  }
->>>>>>> 11e5f7ef8578550e8b572af146ae9ae39d203280
+          ))}
+          {filteredPointsData.length === 0 && (
+            <tr>
+              <td colSpan={7}>Please Select a year to get the Points</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 }
